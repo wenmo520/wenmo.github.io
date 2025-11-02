@@ -1,0 +1,835 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>手机版</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            overflow: hidden;
+            min-height: 100vh;
+            background: #f8f9fa;
+            touch-action: manipulation; /* 优化触摸体验 */
+        }
+        /* 登录页面样式 - 动漫背景 */
+        .login-page {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: linear-gradient(135deg, #fce4ec 0%, #f3e5f5 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            padding: 20px;
+            transition: opacity 0.8s ease, transform 0.8s ease;
+            overflow: hidden;
+        }
+        /* 动漫风格漂浮元素（通用） */
+        .anime-particle {
+            position: absolute;
+            pointer-events: none;
+            opacity: 0;
+            z-index: 0;
+        }
+        /* 登录页花瓣粒子 */
+        .petal {
+            width: 15px;
+            height: 15px;
+            background-size: cover;
+            animation: float 15s infinite ease-in-out;
+        }
+        .petal-1 {
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23ff80ab"><path d="M12 0C8.13 0 5 3.13 5 7c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>');
+        }
+        .petal-2 {
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23e34a86"><path d="M12 0C8.13 0 5 3.13 5 7c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>');
+        }
+        .petal-3 {
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23a239ca"><path d="M12 0C8.13 0 5 3.13 5 7c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>');
+        }
+        /* 模式选择页星点粒子 */
+        .star {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: white;
+            box-shadow: 0 0 8px rgba(255,255,255,0.8);
+            animation: twinkle 8s infinite ease-in-out;
+        }
+        /* 弹幕模式气泡粒子 */
+        .bubble {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.6);
+            box-shadow: 0 0 5px rgba(255,255,255,0.5);
+            animation: rise 12s infinite ease-in-out;
+        }
+        /* 爱心模式光斑粒子 */
+        .light-spot {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: rgba(255,128,171,0.3);
+            box-shadow: 0 0 15px rgba(255,128,171,0.5);
+            animation: floatLight 10s infinite ease-in-out;
+        }
+        /* 动漫风格动画 */
+        @keyframes float {
+            0% { transform: translateY(100vh) rotate(0deg) scale(0.8); opacity: 0; }
+            10% { opacity: 0.8; }
+            90% { opacity: 0.8; }
+            100% { transform: translateY(-20vh) rotate(360deg) scale(1.2); opacity: 0; }
+        }
+        @keyframes twinkle {
+            0%,100% { opacity: 0.2; transform: scale(0.8); }
+            50% { opacity: 1; transform: scale(1.2); }
+        }
+        @keyframes rise {
+            0% { transform: translateY(100vh) translateX(0); opacity: 0; }
+            10% { opacity: 0.7; }
+            90% { opacity: 0.7; }
+            100% { transform: translateY(-20vh) translateX(50px); opacity: 0; }
+        }
+        @keyframes floatLight {
+            0% { transform: translate(0,0) scale(0.9); opacity: 0.4; }
+            25% { transform: translate(15px,-15px) scale(1.1); opacity: 0.8; }
+            50% { transform: translate(0,-30px) scale(0.9); opacity: 0.4; }
+            75% { transform: translate(-15px,-15px) scale(1.1); opacity: 0.8; }
+            100% { transform: translate(0,0) scale(0.9); opacity: 0.4; }
+        }
+        .login-title {
+            font-size: 28px;
+            color: #a239ca;
+            margin-bottom: 30px;
+            text-shadow: 0 3px 12px rgba(162, 57, 202, 0.3);
+            font-family: "Microsoft YaHei", sans-serif;
+            text-align: center;
+            animation: bounce 2.5s infinite alternate;
+            position: relative;
+            z-index: 1;
+        }
+        .login-form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            width: 80%;
+            max-width: 300px;
+            position: relative;
+            z-index: 1;
+        }
+        .login-input {
+            padding: 14px 15px;
+            font-size: 16px;
+            border: 1px solid #f1c8e0;
+            border-radius: 30px;
+            background: rgba(255, 255, 255, 0.8);
+            box-shadow: 0 2px 8px rgba(162, 57, 202, 0.08);
+            transition: border-color 0.3s ease, box-shadow 0.3s ease, transform 0.2s ease;
+            position: relative;
+            z-index: 1;
+        }
+        .login-input:focus {
+            outline: none;
+            border-color: #a239ca;
+            box-shadow: 0 3px 10px rgba(162, 57, 202, 0.2);
+            transform: translateY(-2px);
+        }
+        .login-btn {
+            padding: 14px 0;
+            font-size: 18px;
+            color: white;
+            border: none;
+            border-radius: 30px;
+            cursor: pointer;
+            background: linear-gradient(90deg, #a239ca, #7b1fa2);
+            box-shadow: 0 4px 15px rgba(123, 31, 162, 0.3);
+            transition: all 0.3s ease;
+            font-weight: bold;
+            margin-top: 10px;
+            animation: breath 3s infinite alternate;
+            position: relative;
+            z-index: 1;
+        }
+        .login-btn:hover, .login-btn:active {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(123, 31, 162, 0.4);
+        }
+        .login-tip {
+            font-size: 12px;
+            color: #8e24aa;
+            text-align: center;
+            margin-top: 8px;
+            font-family: "Microsoft YaHei", sans-serif;
+            animation: fadeIn 1.5s ease forwards;
+            opacity: 0;
+            animation-delay: 0.5s;
+            position: relative;
+            z-index: 1;
+        }
+        /* 进入选择页面样式 - 动漫背景 */
+        .entry-page {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: linear-gradient(135deg, #fce4ec 0%, #f3e5f5 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 999;
+            transition: opacity 0.8s ease, transform 0.8s ease;
+            padding: 20px;
+            opacity: 0;
+            transform: scale(0.9);
+            pointer-events: none;
+            overflow: hidden;
+        }
+        .entry-page.active {
+            opacity: 1;
+            transform: scale(1);
+            pointer-events: all;
+        }
+        .entry-title {
+            font-size: 28px;
+            color: #a239ca;
+            margin-bottom: 40px;
+            text-shadow: 0 2px 10px rgba(162, 57, 202, 0.2);
+            font-family: "Microsoft YaHei", sans-serif;
+            text-align: center;
+            animation: bounce 2.5s infinite alternate;
+            position: relative;
+            z-index: 1;
+        }
+        .mode-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            width: 80%;
+            max-width: 300px;
+            position: relative;
+            z-index: 1;
+        }
+        .mode-btn {
+            padding: 16px 0;
+            font-size: 18px;
+            color: white;
+            border: none;
+            border-radius: 30px;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            transition: all 0.3s ease;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            position: relative;
+            z-index: 1;
+        }
+        .mode-btn:hover, .mode-btn:active {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+        }
+        .mode-btn.danmu {
+            background: linear-gradient(90deg, #4299e1, #38b2ac);
+        }
+        .mode-btn.heart {
+            background: linear-gradient(90deg, #ff80ab, #ff4081);
+        }
+        /* 基础动画 */
+        @keyframes bounce {
+            from { transform: translateY(0); }
+            to { transform: translateY(-6px); }
+        }
+        @keyframes breath {
+            from { transform: scale(1); }
+            to { transform: scale(1.03); }
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        /* 提示窗口样式（弹幕模式）- 动漫适配 */
+        .tip-window {
+            position: absolute;
+            width: 85%;
+            max-width: 280px;
+            height: 90px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+            opacity: 0;
+            transform: scale(0.95);
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            cursor: pointer;
+            overflow: hidden;
+            z-index: 10;
+            background: rgba(255,255,255,0.95);
+        }
+        .tip-window::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+        }
+        .tip-content {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 0 15px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            font-family: "Microsoft YaHei", sans-serif;
+        }
+        .tip-window:hover, .tip-window:active {
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+            z-index: 20;
+        }
+        .close-btn {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            opacity: 0.8;
+            transition: all 0.2s ease;
+        }
+        /* 爱心画布样式 - 动漫适配 */
+        #heartCanvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 1;
+            display: block;
+        }
+        .title {
+            position: fixed;
+            top: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 22px;
+            color: #ff4081;
+            font-family: "Microsoft YaHei", sans-serif;
+            z-index: 10;
+            text-shadow: 0 2px 8px rgba(255, 64, 129, 0.2);
+            text-align: center;
+            padding: 0 20px;
+        }
+        /* 返回按钮样式 - 动漫适配 */
+        .back-btn {
+            position: fixed;
+            bottom: 25px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 12px 28px;
+            font-size: 15px;
+            background: rgba(255,255,255,0.9);
+            border: 2px solid #ff4081;
+            color: #ff4081;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            z-index: 99;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+        }
+        .back-btn:hover, .back-btn:active {
+            background: #ff4081;
+            color: white;
+        }
+        /* 触摸反馈样式 */
+        .touch-feedback {
+            touch-action: manipulation;
+        }
+    </style>
+</head>
+<body>
+    <!-- 登录页面 -->
+    <div class="login-page" id="loginPage">
+        <!-- 登录页动漫花瓣粒子 -->
+        <div class="anime-particle petal petal-1" style="left: 10%; top: 20%; animation-delay: 0s;"></div>
+        <div class="anime-particle petal petal-2" style="left: 80%; top: 30%; animation-delay: 2s;"></div>
+        <div class="anime-particle petal petal-3" style="left: 30%; top: 50%; animation-delay: 4s;"></div>
+        <div class="anime-particle petal petal-1" style="left: 60%; top: 10%; animation-delay: 6s;"></div>
+        <div class="anime-particle petal petal-2" style="left: 20%; top: 70%; animation-delay: 8s;"></div>
+        <div class="anime-particle petal petal-3" style="left: 70%; top: 60%; animation-delay: 10s;"></div>
+
+        <div class="login-title">✨ 登录 ✨</div>
+        <div class="login-form">
+            <input type="text" class="login-input" id="usernameInput" placeholder="请输入账号" autocomplete="off">
+            <input type="password" class="login-input" id="passwordInput" placeholder="请输入密码" autocomplete="off">
+            <button class="login-btn touch-feedback" id="submitLogin">登录</button>
+            <div class="login-tip">默认账号：zyc | 默认密码：0607</div>
+        </div>
+    </div>
+
+    <!-- 进入选择页面 -->
+    <div class="entry-page" id="entryPage">
+        <!-- 选择页动漫星点粒子 -->
+        <div class="anime-particle star" style="left: 15%; top: 25%; animation-delay: 0s;"></div>
+        <div class="anime-particle star" style="left: 85%; top: 20%; animation-delay: 1s;"></div>
+        <div class="anime-particle star" style="left: 45%; top: 15%; animation-delay: 2s;"></div>
+        <div class="anime-particle star" style="left: 65%; top: 75%; animation-delay: 3s;"></div>
+        <div class="anime-particle star" style="left: 25%; top: 65%; animation-delay: 4s;"></div>
+        <div class="anime-particle star" style="left: 75%; top: 45%; animation-delay: 5s;"></div>
+
+        <div class="entry-title">✨ 选择要进入的页面 ✨</div>
+        <div class="mode-buttons">
+            <button class="mode-btn danmu touch-feedback" id="danmuBtn">
+                📢 弹幕页面
+            </button>
+            <button class="mode-btn heart touch-feedback" id="heartBtn">
+                ❤️ 爱心页面
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // 登录逻辑
+        const loginPage = document.getElementById('loginPage');
+        const entryPage = document.getElementById('entryPage');
+        const usernameInput = document.getElementById('usernameInput');
+        const passwordInput = document.getElementById('passwordInput');
+        const submitLogin = document.getElementById('submitLogin');
+
+        submitLogin.addEventListener('click', () => {
+            const username = usernameInput.value.trim();
+            const password = passwordInput.value.trim();
+
+            if (username === 'zyc' && password === '0607') {
+                loginPage.style.opacity = '0';
+                loginPage.style.transform = 'scale(0.9)';
+                loginPage.style.pointerEvents = 'none';
+
+                setTimeout(() => {
+                    entryPage.classList.add('active');
+                    addMoreParticles(entryPage, 'star', 8);
+                }, 600);
+            } else {
+                alert('账号或密码错误！默认账号：zyc，默认密码：0607');
+            }
+        });
+
+        // 全局变量
+        let currentMode = '';
+        let animationId = null;
+        let heartInterval = null;
+
+        // 返回选择页面
+        function backToEntry() {
+            if (animationId) {
+                cancelAnimationFrame(animationId);
+                animationId = null;
+            }
+            if (heartInterval) {
+                clearInterval(heartInterval);
+                heartInterval = null;
+            }
+            document.querySelectorAll('.anime-particle:not(.petal):not(.star)').forEach(el => el.remove());
+            document.querySelectorAll('body > *:not(#entryPage):not(#loginPage)').forEach(el => el.remove());
+
+            entryPage.style.display = 'flex';
+            entryPage.style.opacity = '1';
+            entryPage.style.transform = 'scale(1)';
+            currentMode = '';
+        }
+
+        // 添加返回按钮
+        function addBackButton() {
+            const backBtn = document.createElement('button');
+            backBtn.className = 'back-btn touch-feedback';
+            backBtn.textContent = '返回选择模式';
+            backBtn.addEventListener('click', backToEntry);
+            document.body.appendChild(backBtn);
+        }
+
+        // 批量添加动漫粒子（通用函数）
+        function addMoreParticles(parent, particleType, count) {
+            for (let i = 0; i < count; i++) {
+                const particle = document.createElement('div');
+                particle.className = `anime-particle ${particleType}`;
+                const left = Math.floor(Math.random() * 90) + 5;
+                const top = Math.floor(Math.random() * 90) + 5;
+                const delay = Math.random() * 6;
+                particle.style.left = `${left}%`;
+                particle.style.top = `${top}%`;
+                particle.style.animationDelay = `${delay}s`;
+                parent.appendChild(particle);
+            }
+        }
+
+        // ---------------------- 弹幕模式逻辑 ----------------------
+        class TipWindowManager {
+            constructor() {
+                this.windows = [];
+                this.updateScreenSize();
+                this.windowWidth = Math.min(280, window.innerWidth * 0.85);
+                this.windowHeight = 90;
+                this.padding = 15;
+                this.spacing = 8;
+
+                window.addEventListener('resize', () => {
+                    this.updateScreenSize();
+                    this.windowWidth = Math.min(280, window.innerWidth * 0.85);
+                });
+            }
+
+            updateScreenSize() {
+                this.screenWidth = window.innerWidth;
+                this.screenHeight = window.innerHeight;
+            }
+
+            checkCollision(rect1, rect2) {
+                return rect1.x < rect2.x + this.windowWidth + this.spacing &&
+                       rect1.x + this.windowWidth + this.spacing > rect2.x &&
+                       rect1.y < rect2.y + this.windowHeight + this.spacing &&
+                       rect1.y + this.windowHeight + this.spacing > rect2.y;
+            }
+
+            findSuitablePosition() {
+                const maxAttempts = 30;
+                let attempts = 0;
+
+                while (attempts < maxAttempts) {
+                    attempts++;
+                    const maxX = this.screenWidth - this.windowWidth - this.padding;
+                    const maxY = this.screenHeight - this.windowHeight - this.padding;
+                    const x = this.padding + Math.floor(Math.random() * (maxX - this.padding + 1));
+                    const y = this.padding + Math.floor(Math.random() * (maxY - this.padding + 1));
+
+                    let collision = false;
+                    for (const window of this.windows) {
+                        const existingRect = {
+                            x: parseInt(window.style.left),
+                            y: parseInt(window.style.top)
+                        };
+                        if (this.checkCollision({x, y}, existingRect)) {
+                            collision = true;
+                            break;
+                        }
+                    }
+
+                    if (!collision) {
+                        return {x, y};
+                    }
+                }
+
+                const columns = Math.floor((this.screenWidth - this.padding * 2) / (this.windowWidth + this.spacing));
+                const index = this.windows.length;
+                const col = index % columns;
+                const row = Math.floor(index / columns);
+                return {
+                    x: this.padding + col * (this.windowWidth + this.spacing),
+                    y: this.padding + row * (this.windowHeight + this.spacing)
+                };
+            }
+
+            createTipWindow() {
+                const window = document.createElement('div');
+                window.className = 'tip-window touch-feedback';
+                document.body.appendChild(window);
+
+                const {x, y} = this.findSuitablePosition();
+                window.style.left = `${x}px`;
+                window.style.top = `${y}px`;
+
+                const styles = [
+                    { bg: 'linear-gradient(135deg, #FFCCD5 0%, #FFE6F0 100%)', accent: '#a239ca', text: '#5D2A42' },
+                    { bg: 'linear-gradient(135deg, #CCE5FF 0%, #E6F2FF 100%)', accent: '#4DA6FF', text: '#1A3D5C' },
+                    { bg: 'linear-gradient(135deg, #CCFFE5 0%, #E6FFEE 100%)', accent: '#4DFFA6', text: '#1A5C38' },
+                    { bg: 'linear-gradient(135deg, #E6CCFF 0%, #F2E6FF 100%)', accent: '#7b1fa2', text: '#3D1A5C' },
+                    { bg: 'linear-gradient(135deg, #FFF3CC 0%, #FFF9E6 100%)', accent: '#FFD14D', text: '#5C4D1A' }
+                ];
+                const tips = [
+                    '多喝热水，温暖整个冬天~', '嘴角上扬，好运自然来✨', '今日份元气已送达',
+                    '水果补给站，健康不打烊', '把烦恼清空，装满快乐吧', '爱自己是终身浪漫的开始',
+                    '思念如星，夜夜闪亮✨', '心有光芒，何惧路长', '期待下次见面',
+                    '笔锋所至，梦想开花🌼', '万事顺意，平安喜乐', '月亮已就位，该休息啦'
+                ];
+                const fonts = ['"Microsoft YaHei", sans-serif', '"SimHei", sans-serif'];
+                const decorations = ['🌸', '✨', '💫', '💖', '💐', '🌟'];
+
+                const style = styles[Math.floor(Math.random() * styles.length)];
+                const tip = tips[Math.floor(Math.random() * tips.length)];
+                const font = fonts[Math.floor(Math.random() * fonts.length)];
+                const deco = decorations[Math.floor(Math.random() * decorations.length)];
+                const decoratedTip = `${deco} ${tip} ${deco}`;
+
+                window.style.background = style.bg;
+                const styleSheet = document.styleSheets[0];
+                styleSheet.insertRule(`
+                    .tip-window:nth-last-child(${this.windows.length + 2})::before {
+                        background-color: ${style.accent};
+                    }
+                `, styleSheet.cssRules.length);
+
+                const closeBtn = document.createElement('div');
+                closeBtn.className = 'close-btn touch-feedback';
+                closeBtn.textContent = '×';
+                closeBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    this.closeWindow(window);
+                });
+                window.appendChild(closeBtn);
+
+                const content = document.createElement('div');
+                content.className = 'tip-content';
+                content.textContent = decoratedTip;
+                content.style.fontFamily = font;
+                content.style.color = style.text;
+                window.appendChild(content);
+
+                setTimeout(() => {
+                    window.style.opacity = '0.95';
+                    window.style.transform = 'scale(1)';
+                }, 50);
+
+                window.addEventListener('click', () => this.closeWindow(window));
+                this.windows.push(window);
+            }
+
+            closeWindow(window) {
+                const index = this.windows.indexOf(window);
+                if (index !== -1) this.windows.splice(index, 1);
+                window.style.opacity = '0';
+                window.style.transform = 'scale(0.8) translateY(15px)';
+                window.style.boxShadow = 'none';
+                setTimeout(() => {
+                    if (window.parentNode) document.body.removeChild(window);
+                }, 300);
+            }
+
+            createMultipleWindows(count = 15, delay = 200) {
+                for (let i = 0; i < count; i++) {
+                    setTimeout(() => this.createTipWindow(), i * delay);
+                }
+            }
+        }
+
+        function initDanmuMode() {
+            currentMode = 'danmu';
+            entryPage.style.opacity = '0';
+            entryPage.style.transform = 'scale(0.9)';
+
+            setTimeout(() => {
+                entryPage.style.display = 'none';
+                addMoreParticles(document.body, 'bubble', 12);
+                const manager = new TipWindowManager();
+                manager.createMultipleWindows(12);
+                addBackButton();
+            }, 600);
+        }
+
+        // ---------------------- 粉色爱心模式逻辑（调整大小为1/3） ----------------------
+        function initHeartMode() {
+            currentMode = 'heart';
+            entryPage.style.opacity = '0';
+            entryPage.style.transform = 'scale(0.9)';
+
+            setTimeout(() => {
+                entryPage.style.display = 'none';
+                addMoreParticles(document.body, 'light-spot', 6);
+                const title = document.createElement('div');
+                title.className = 'title';
+                title.textContent = '送你小 ❤️';
+                document.body.appendChild(title);
+                const canvas = document.createElement('canvas');
+                canvas.id = 'heartCanvas';
+                document.body.appendChild(canvas);
+                const ctx = canvas.getContext('2d');
+
+                function resizeCanvas() {
+                    canvas.width = window.innerWidth;
+                    canvas.height = window.innerHeight;
+                }
+                resizeCanvas();
+                window.addEventListener('resize', resizeCanvas);
+
+                // 粉色爱心粒子类
+                class HeartParticle {
+                    constructor(x, y, size, color) {
+                        this.x = x;
+                        this.y = y;
+                        this.size = size;  // 粒子大小也会相应变小
+                        this.color = color;
+                        this.alpha = 1;
+                        this.speed = Math.random() * 0.3 + 0.05;  // 速度减慢配合小尺寸
+                        this.angle = Math.random() * Math.PI * 2;
+                        this.swing = Math.random() * 0.3 + 0.2;  // 晃动幅度减小
+                    }
+
+                    draw() {
+                        ctx.save();
+                        ctx.beginPath();
+                        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                        const gradient = ctx.createRadialGradient(
+                            this.x, this.y, 0,
+                            this.x, this.y, this.size
+                        );
+                        gradient.addColorStop(0, `rgba(${this.color.r}, ${this.color.g}, ${this.color.b}, ${this.alpha})`);
+                        gradient.addColorStop(1, `rgba(${this.color.r}, ${this.color.g}, ${this.color.b}, 0.2)`);
+                        ctx.fillStyle = gradient;
+                        ctx.fill();
+                        ctx.restore();
+                    }
+
+                    update() {
+                        this.x += Math.cos(this.angle) * this.speed + Math.sin(Date.now() * 0.002) * this.swing;
+                        this.y += Math.sin(this.angle) * this.speed + Math.cos(Date.now() * 0.002) * this.swing;
+                        this.alpha -= 0.01;
+                        return this.alpha > 0;
+                    }
+                }
+
+                const particles = [];
+                // 粉色系颜色方案
+                const heartColors = [
+                    {r: 255, g: 183, b: 200}, // 浅粉色
+                    {r: 255, g: 128, b: 171}, // 中粉色
+                    {r: 255, g: 64, b: 129},  // 深粉色
+                ];
+
+                function createHeartShape(scale = 1) {
+                    const centerX = canvas.width / 2;
+                    const centerY = canvas.height / 2;
+                    const points = [];
+                    for (let t = 0; t <= Math.PI * 2; t += 0.01) {
+                        const x = 16 * Math.pow(Math.sin(t), 3);
+                        const y = 13 * Math.cos(t) - 5 * Math.cos(2*t) - 2 * Math.cos(3*t) - Math.cos(4*t);
+                        points.push({x: centerX + x * scale, y: centerY - y * scale});
+                    }
+                    return points;
+                }
+
+                let pulse = 0;
+                // 核心修改：将基础缩放比例改为原来的1/3
+                const baseScale = Math.min(canvas.width, canvas.height) / 75;  // 原先是 /25，现在是 /75（1/3）
+                const pulseRange = baseScale * 0.1;  // 脉动范围也相应减小
+
+                // 粒子生成间隔延长，避免过多小粒子
+                heartInterval = setInterval(() => {
+                    const x = Math.random() * canvas.width;
+                    const y = canvas.height + 10;
+                    const count = Math.floor(Math.random() * 2) + 1;
+                    for (let i = 0; i < count; i++) {
+                        particles.push(new HeartParticle(
+                            x + (Math.random() * 15 - 7.5),  // 生成范围减小
+                            y,
+                            Math.random() * 0.8 + 0.3,  // 粒子尺寸减小
+                            heartColors[Math.floor(Math.random() * heartColors.length)]
+                        ));
+                    }
+                }, 400 + Math.random() * 300);  // 间隔延长
+
+                // 初始粒子数量减少
+                for (let i = 0; i < 5; i++) {
+                    const x = Math.random() * canvas.width;
+                    const y = canvas.height + 10;
+                    particles.push(new HeartParticle(
+                        x, y, Math.random() * 0.8 + 0.3,
+                        heartColors[Math.floor(Math.random() * heartColors.length)]
+                    ));
+                }
+
+                // 粉色爱心动画
+                function animate() {
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    pulse += 0.04;
+                    const currentScale = baseScale + Math.sin(pulse) * pulseRange;
+                    const heartPoints = createHeartShape(currentScale);
+
+                    // 绘制粉色爱心（渐变+发光边框）
+                    ctx.save();
+                    ctx.beginPath();
+                    heartPoints.forEach((point, index) => {
+                        index === 0 ? ctx.moveTo(point.x, point.y) : ctx.lineTo(point.x, point.y);
+                    });
+                    ctx.closePath();
+
+                    // 粉色径向渐变
+                    const gradient = ctx.createRadialGradient(
+                        canvas.width / 2, canvas.height / 2, 0,
+                        canvas.width / 2, canvas.height / 2, currentScale * 20
+                    );
+                    gradient.addColorStop(0, 'rgba(255, 183, 200, 0.9)');  // 浅粉
+                    gradient.addColorStop(0.6, 'rgba(255, 128, 171, 0.8)'); // 中粉
+                    gradient.addColorStop(1, 'rgba(255, 64, 129, 0.7)');   // 深粉
+                    ctx.fillStyle = gradient;
+                    ctx.fill();
+
+                    // 粉色发光边框
+                    ctx.lineWidth = 2;  // 线宽减小配合小爱心
+                    const glowGradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+                    glowGradient.addColorStop(0, 'rgba(255, 183, 200, 1)');
+                    glowGradient.addColorStop(1, 'rgba(255, 64, 129, 1)');
+                    ctx.strokeStyle = glowGradient;
+                    ctx.stroke();
+                    ctx.restore();
+
+                    // 生成粒子（频率降低）
+                    if (Math.random() < 0.2) {  // 原先是0.4，降低生成频率
+                        const randomPoint = heartPoints[Math.floor(Math.random() * heartPoints.length)];
+                        const color = heartColors[Math.floor(Math.random() * heartColors.length)];
+                        particles.push(new HeartParticle(
+                            randomPoint.x, randomPoint.y,
+                            Math.random() * 0.8 + 0.3, color
+                        ));
+                    }
+
+                    // 更新粒子
+                    for (let i = particles.length - 1; i >= 0; i--) {
+                        if (!particles[i].update()) {
+                            particles.splice(i, 1);
+                        } else {
+                            particles[i].draw();
+                        }
+                    }
+
+                    animationId = requestAnimationFrame(animate);
+                }
+
+                animate();
+                addBackButton();
+            }, 600);
+        }
+
+        // 绑定按钮事件
+        document.getElementById('danmuBtn').addEventListener('click', initDanmuMode);
+        document.getElementById('heartBtn').addEventListener('click', initHeartMode);
+
+        // 防止手机端双击缩放
+        let lastTouchEnd = 0;
+        document.addEventListener('touchend', (event) => {
+            const now = (new Date()).getTime();
+            if (now - lastTouchEnd <= 300) {
+                event.preventDefault();
+            }
+            lastTouchEnd = now;
+        }, false);
+    </script>
+</body>
+</html>
